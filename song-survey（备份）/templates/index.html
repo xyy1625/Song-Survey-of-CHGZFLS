@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<!-- 首页 - 显示已审核通过的歌曲列表，按播放时段分组展示 -->
+<head>
+    <!-- 页面元信息 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <title>歌单预览</title>
+
+    <!-- 外部样式表 -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <!-- 公告弹窗 - 页面首次访问时显示使用说明 -->
+    <div id="popup" style="
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    ">
+        <div style="
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+        ">
+            <h3>公告</h3>
+            <p>欢迎使用点歌台！</p>
+            <p>每名同学限点一首歌曲</p>
+            <p>超额点播将被我们删除！</p>
+            <button onclick="closePopup()" style="margin-top:10px;">我知道了</button>
+        </div>
+    </div>
+
+    <!-- 页面布局包装器 -->
+    <div class="page-wrapper">
+        <div class="content-wrapper">
+            <div class="container">
+                <!-- 页面标题 -->
+                <h2>歌单预览</h2>
+
+                <!-- 点歌按钮区域 -->
+                <div style="padding: 0 16px; margin: 20px 0;">
+                    <a href="/song" style="display:block;">
+                        <button class="btn btn-secondary btn-block">我要点歌</button></a>
+                </div>
+            </a>
+        </div>
+
+        <!-- 歌曲列表表格 -->
+        <table>
+            <thead>
+                <tr>
+                    <th>播放时段</th>
+                    <th>歌曲</th>
+                    <th>作者</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 定义播放时段列表 -->
+                {% set timeslots = [
+                    '周一午间', '周一晚间',
+                    '周二午间', '周二晚间',
+                    '周三午间', '周三晚间',
+                    '周四午间', '周四晚间',
+                    '周五午间'
+                ] %}
+
+                <!-- 循环显示每个时段的歌曲 -->
+                {% for slot in timeslots %}
+                    <!-- 获取当前时段的所有歌曲 -->
+                    {% set slot_songs = responses
+                        |selectattr("timeslot", "equalto", slot)
+                        |list %}
+
+                    {% if slot_songs %}
+                        <!-- 如果有歌曲，显示每首歌 -->
+                        {% for r in slot_songs %}
+                        <tr>
+                            {% if loop.first %}
+                                <!-- 第一个歌曲行显示时段名称，跨行显示 -->
+                                <td rowspan="{{ slot_songs|length }}">{{ slot }}</td>
+                            {% endif %}
+                            <td>{{ r.song }}</td>
+                            <td>{{ r.author }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <!-- 如果没有歌曲，显示空时段提示 -->
+                        <tr>
+                            <td>{{ slot }}</td>
+                            <td colspan="2">该时段无歌曲</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- FM 广告位 -->
+        <div style="text-align:center; margin:20px 0;">
+            <img src="/static/gwfm.png"
+                 style="max-width:300px; width:60%; height:auto; border-radius:8px;"
+                 alt="FM 广告">
+        </div>
+
+        <!-- 页脚信息 -->
+        <div class="footer">
+            <span>powered by</span>
+            <img src="/static/logo.png" style="height:1em; vertical-align:middle;" alt="Logo">
+        </div>
+    </div>
+
+    <!-- JavaScript 功能脚本 -->
+    <script>
+        /* ===== 页面加载和弹窗控制 ===== */
+        // 页面加载完成时执行
+        window.onload = function() {
+            // 检查是否已显示过弹窗（基于会话存储）
+            if (!sessionStorage.getItem("popupShown")) {
+                document.getElementById("popup").style.display = "flex";
+            }
+        };
+
+        /* ===== 关闭弹窗功能 ===== */
+        function closePopup() {
+            // 隐藏弹窗
+            document.getElementById("popup").style.display = "none";
+
+            // 标记当前会话已显示过弹窗
+            sessionStorage.setItem("popupShown", "yes");
+        }
+    </script>
+</body>
+</html>
